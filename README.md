@@ -1,6 +1,13 @@
 # Log Signer
 :lock_with_ink_pen: Log Signer is an interview project.
 
+#### Features
+###### Uploading Log
+![File Upload](images/screenshot_1.png "File Upload")
+
+###### Accessing Created Sign File (.merkle)
+![File List](images/screenshot_2.png "File List")
+
 ## Introduction
 There are several possibilities to sign a log file. One could:
 1. Sign the file as a whole
