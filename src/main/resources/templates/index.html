@@ -32,6 +32,10 @@
 		</ul>
 		<div class="tab-content" id="tabContent">
 			<div class="tab-pane fade show active" id="upload" role="tabpanel" aria-labelledby="upload-tab">
+				<div class="alert alert-success m-2" role="alert" th:if="${message}">
+					<h5 th:text="${message}"/>
+				</div>
+
 				<form class="m-2" method="POST" enctype="multipart/form-data" action="/">
 					<table class="table">
 						<tr>
@@ -50,13 +54,11 @@
 					<thead>
 					<tr>
 						<th scope="col">File</th>
-						<th scope="col">Hash</th>
 					</tr>
 					</thead>
 					<tbody>
 					<tr th:each="file : ${files}">
 						<td><a th:href="${file}" th:text="${file}"/></td>
-						<td>[PLACEHOLDER]</td>
 					</tr>
 					</tbody>
 				</table>

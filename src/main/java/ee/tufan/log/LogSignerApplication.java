@@ -1,16 +1,15 @@
 package ee.tufan.log;
 
+import ee.tufan.log.storage.service.StorageService;
+import ee.tufan.log.storage.service.StorageServiceImplProperties;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
-import ee.tufan.log.service.StorageProperties;
-import ee.tufan.log.service.StorageService;
-
 @SpringBootApplication
-@EnableConfigurationProperties(StorageProperties.class)
+@EnableConfigurationProperties(StorageServiceImplProperties.class)
 public class LogSignerApplication {
 
 	public static void main(String[] args) {
@@ -24,4 +23,5 @@ public class LogSignerApplication {
 			storageService.init();
 		};
 	}
+
 }

@@ -1,8 +1,10 @@
-package ee.tufan.log.controller;
+package ee.tufan.log.storage.controller;
 
 import java.io.IOException;
 import java.util.stream.Collectors;
 
+import ee.tufan.log.storage.service.StorageService;
+import ee.tufan.log.storage.service.StorageServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -19,16 +21,13 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import ee.tufan.log.service.StorageFileNotFoundException;
-import ee.tufan.log.service.StorageService;
-
 @Controller
-public class FileUploadController {
+public class StorageController {
 
 	private final StorageService storageService;
 
 	@Autowired
-	public FileUploadController(StorageService storageService) {
+	public StorageController(StorageService storageService) {
 		this.storageService = storageService;
 	}
 
@@ -36,11 +35,11 @@ public class FileUploadController {
 	public String listUploadedFiles(Model model) throws IOException {
 
 		model.addAttribute("files", storageService.loadAll().map(
-				path -> MvcUriComponentsBuilder.fromMethodName(FileUploadController.class,
+				path -> MvcUriComponentsBuilder.fromMethodName(StorageController.class,
 						"serveFile", path.getFileName().toString()).build().toString())
 				.collect(Collectors.toList()));
 
-		return "uploadForm";
+		return "index";
 	}
 
 	@GetMapping("/files/{filename:.+}")
@@ -63,8 +62,8 @@ public class FileUploadController {
 		return "redirect:/";
 	}
 
-	@ExceptionHandler(StorageFileNotFoundException.class)
-	public ResponseEntity<?> handleStorageFileNotFound(StorageFileNotFoundException exc) {
+	@ExceptionHandler(StorageServiceException.class)
+	public ResponseEntity<?> handleStorageFileNotFound(StorageServiceException exc) {
 		return ResponseEntity.notFound().build();
 	}
 
