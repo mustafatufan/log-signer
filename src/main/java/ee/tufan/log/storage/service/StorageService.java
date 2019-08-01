@@ -1,5 +1,6 @@
 package ee.tufan.log.storage.service;
 
+import ee.tufan.log.sign.model.MerkleTree;
 import ee.tufan.log.sign.service.SignServiceException;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +23,6 @@ public interface StorageService {
 
 	Resource loadAsResource(String filename);
 
-	void deleteAll();
+	MerkleTree getSignByLogLine(String logLine) throws SignServiceException;
 
 }

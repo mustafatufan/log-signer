@@ -32,6 +32,11 @@ public class StorageController {
 	}
 
 	@GetMapping("/")
+	public String upload(Model model) throws IOException {
+		return "upload";
+	}
+
+	@GetMapping("/list")
 	public String listUploadedFiles(Model model) throws IOException {
 
 		model.addAttribute("files", storageService.loadAll().map(
@@ -39,7 +44,7 @@ public class StorageController {
 						"serveFile", path.getFileName().toString()).build().toString())
 				.collect(Collectors.toList()));
 
-		return "index";
+		return "list";
 	}
 
 	@GetMapping("/files/{filename:.+}")

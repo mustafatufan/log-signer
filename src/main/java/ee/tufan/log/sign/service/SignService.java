@@ -7,4 +7,5 @@ public interface SignService {
 
 	MerkleTree getSignOfFile(MultipartFile file) throws SignServiceException;
 
+
 }

@@ -17,6 +17,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 
 @Service
@@ -129,9 +131,37 @@ public class StorageServiceImpl implements StorageService {
 	}
 
 	@Override
-	public void deleteAll() {
-		FileSystemUtils.deleteRecursively(uploadLocation.toFile());
-		FileSystemUtils.deleteRecursively(signLocation.toFile());
+	public MerkleTree getSignByLogLine(String logLine) {
+		List<MerkleTree> list = null;
+		try {
+			list = readSignFiles();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+
+		for (MerkleTree sign : list) {
+			if (sign.contains(logLine)) {
+				return sign;
+			}
+		}
+
+		return null;
+	}
+
+	private List<MerkleTree> readSignFiles() throws IOException {
+		List<MerkleTree> signList = new ArrayList<>();
+		Stream<Path> signStream = getPathStream(this.signLocation);
+		signStream.forEach(s -> {
+			try (FileInputStream fi = new FileInputStream(this.signLocation.resolve(s).toFile())) {
+				try (ObjectInputStream oi = new ObjectInputStream(fi)) {
+					MerkleTree sign = (MerkleTree) oi.readObject();
+					signList.add(sign);
+				}
+			} catch (IOException | ClassNotFoundException ex) {
+				ex.printStackTrace();
+			}
+		});
+		return signList;
 	}
 
 	@Override

@@ -1,12 +1,15 @@
 # Log Signer
-:lock_with_ink_pen: Log Signer is an interview project.
+:lock_with_ink_pen: Log Signer is an project to save log files and to verify log lines later.
 
 #### Features
-###### Uploading Log
+###### 1. Upload a log file.
 ![File Upload](images/screenshot_1.png "File Upload")
 
-###### Accessing Created Sign File (.merkle)
+###### 2. A sign file is going to be created automatically. (.merkle)
 ![File List](images/screenshot_2.png "File List")
+
+###### 3. You could verify any log line in the log file by viewing merkle path of the log line.
+![Verify](images/screenshot_3.png "Verify")
 
 ## Introduction
 There are several possibilities to sign a log file. One could:
