@@ -11,6 +11,8 @@
 ###### 3. You could verify any log line in the log file by viewing merkle path of the log line.
 ![Verify](images/screenshot_3.png "Verify")
 
+![Verify2](images/screenshot_4.png "Verify2")
+
 ## Introduction
 There are several possibilities to sign a log file. One could:
 1. Sign the file as a whole
