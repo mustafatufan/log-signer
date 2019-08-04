@@ -48,22 +48,28 @@ public class VerificationServiceImpl implements VerificationService {
 			key = findNextKey(verification.get("key"), sign.getSignMap());
 		}
 
-
 		return verificationList;
 	}
 
 	private String findNextKey(String half, Map<String, String> map) {
 		for (Map.Entry<String, String> entry : map.entrySet()) {
-			try {
-				if (entry.getKey().contains(half)) {
-					return entry.getKey();
-				}
-			} catch (NullPointerException ex) {
-				// TODO: just go on
+			if (isChild(entry.getKey(), half)) {
+				return entry.getKey();
 			}
 		}
 		return null;
 	}
 
+	public boolean isChild(String key, String half) {
+		if (key == null || half == null) {
+			return false;
+		}
+		final int mid = key.length() / 2;
+		String[] parts = {key.substring(0, mid), key.substring(mid)};
+		if (half.equals(parts[0]) || half.equals(parts[1])) {
+			return true;
+		}
+		return false;
+	}
 
 }

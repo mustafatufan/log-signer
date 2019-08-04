@@ -140,7 +140,7 @@ public class StorageServiceImpl implements StorageService {
 		}
 
 		for (MerkleTree sign : list) {
-			if (sign.contains(logLine)) {
+			if (sign.isLogExist(logLine)) {
 				return sign;
 			}
 		}

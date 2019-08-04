@@ -54,13 +54,13 @@ public class MerkleTree implements Serializable {
 	}
 
 	private List<String> getFirstLeafList(List<String> logList) {
-		List<String> firstLeafList = new ArrayList<>();
-		for (String log : logList) {
+		List<String> result = new ArrayList<>();
+		logList.forEach(log -> {
 			String sign = sign(log);
-			firstLeafList.add(sign);
+			result.add(sign);
 			signMap.put(log, sign);
-		}
-		return firstLeafList;
+		});
+		return result;
 	}
 
 	@Override
@@ -68,14 +68,16 @@ public class MerkleTree implements Serializable {
 		return getRootHash();
 	}
 
-	public boolean contains(String paramLog) {
-		for (String logLine : logList) {
-			if (logLine.equals(paramLog)) {
+	public boolean isLogExist(String paramLog) {
+		for (String log : logList) {
+			if (log.equals(paramLog)) {
 				return true;
 			}
 		}
 		return false;
 	}
+
+
 
 	private String sign(String raw) {
 		try {
@@ -92,11 +94,4 @@ public class MerkleTree implements Serializable {
 		}
 	}
 
-	public static String getRightHash(String hash) {
-		return hash.substring(0, HASH_LEN / 2);
-	}
-
-	public static String getLeftHash(String hash) {
-		return hash.substring(HASH_LEN / 2, hash.length());
-	}
 }
