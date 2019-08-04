@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
-import org.springframework.util.FileSystemUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,15 +32,19 @@ public class StorageServiceImpl implements StorageService {
 	@Autowired
 	public StorageServiceImpl(SignService signService, StorageServiceImplProperties properties) {
 		this.signService = signService;
-
 		this.uploadLocation = Paths.get(properties.getUploadLocation());
 		this.signLocation = Paths.get(properties.getSignLocation());
 		this.logExtension = properties.getLogExtension();
 	}
 
-	@Autowired
-	public SignService getSignService() {
-		return signService;
+	@Override
+	public void init() {
+		try {
+			Files.createDirectories(uploadLocation);
+			Files.createDirectories(signLocation);
+		} catch (IOException e) {
+			throw new StorageServiceException("Could not initialize storage");
+		}
 	}
 
 	@Override
@@ -61,36 +64,27 @@ public class StorageServiceImpl implements StorageService {
 						StandardCopyOption.REPLACE_EXISTING);
 			}
 			storeSignOfFile(file);
+		} catch (IOException ex) {
+			throw new StorageServiceException(ex.getMessage(), ex);
+		}
+	}
+
+	@Override
+	public void storeSignOfFile(MultipartFile file) throws StorageServiceException {
+		File signFile = this.signLocation.resolve(getSignFileName(file)).toFile();
+
+		try (FileOutputStream fileStream = new FileOutputStream(signFile)) {
+			try (ObjectOutputStream outputStream = new ObjectOutputStream(fileStream)) {
+				MerkleTree sign = signService.getSignOfFile(file);
+				outputStream.writeObject(sign);
+			}
 		} catch (IOException | SignServiceException ex) {
 			throw new StorageServiceException(ex.getMessage(), ex);
 		}
 	}
 
 	@Override
-	public void storeSignOfFile(MultipartFile file) throws IOException, SignServiceException {
-		File signFile = this.signLocation.resolve(getSignFileName(file)).toFile();
-		FileOutputStream fileStream = new FileOutputStream(signFile);
-		ObjectOutputStream outputStream = new ObjectOutputStream(fileStream);
-		MerkleTree sign = signService.getSignOfFile(file);
-		outputStream.writeObject(sign);
-		outputStream.close();
-		fileStream.close();
-	}
-
-	private String getSignFileName(MultipartFile file) {
-		String filename = StringUtils.cleanPath(file.getOriginalFilename());
-		String signName = filename;
-		int extIndex = filename.lastIndexOf(".");
-		if (extIndex != -1) {
-			signName = filename.substring(0, extIndex);
-		}
-		signName = signName.concat(this.logExtension);
-		return signName;
-	}
-
-
-	@Override
-	public Stream<Path> loadAll() {
+	public Stream<Path> loadAll() throws StorageServiceException {
 		try {
 			Stream<Path> uploadStream = getPathStream(this.uploadLocation);
 			Stream<Path> signStream = getPathStream(this.signLocation);
@@ -98,12 +92,6 @@ public class StorageServiceImpl implements StorageService {
 		} catch (IOException e) {
 			throw new StorageServiceException("Failed to read stored files");
 		}
-	}
-
-	private Stream<Path> getPathStream(Path path) throws IOException {
-		return Files.walk(path, 1)
-				.filter(p -> !p.equals(path))
-				.map(path::relativize);
 	}
 
 	@Override
@@ -131,21 +119,34 @@ public class StorageServiceImpl implements StorageService {
 	}
 
 	@Override
-	public MerkleTree getSignByLogLine(String logLine) {
-		List<MerkleTree> list = null;
+	public MerkleTree getSignByLogLine(String logLine) throws StorageServiceException {
 		try {
-			list = readSignFiles();
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
-
-		for (MerkleTree sign : list) {
-			if (sign.isLogExist(logLine)) {
-				return sign;
+			for (MerkleTree sign : readSignFiles()) {
+				if (sign.isLogExist(logLine)) {
+					return sign;
+				}
 			}
+		} catch (IOException ex) {
+			throw new StorageServiceException(ex.getMessage(), ex);
 		}
+		throw new StorageServiceException("There isn't a sign file that contains this log line.");
+	}
 
-		return null;
+	private String getSignFileName(MultipartFile file) {
+		String filename = StringUtils.cleanPath(file.getOriginalFilename());
+		String signName = filename;
+		int extIndex = filename.lastIndexOf(".");
+		if (extIndex != -1) {
+			signName = filename.substring(0, extIndex);
+		}
+		signName = signName.concat(this.logExtension);
+		return signName;
+	}
+
+	private Stream<Path> getPathStream(Path path) throws IOException {
+		return Files.walk(path, 1)
+				.filter(p -> !p.equals(path))
+				.map(path::relativize);
 	}
 
 	private List<MerkleTree> readSignFiles() throws IOException {
@@ -162,16 +163,6 @@ public class StorageServiceImpl implements StorageService {
 			}
 		});
 		return signList;
-	}
-
-	@Override
-	public void init() {
-		try {
-			Files.createDirectories(uploadLocation);
-			Files.createDirectories(signLocation);
-		} catch (IOException e) {
-			throw new StorageServiceException("Could not initialize storage");
-		}
 	}
 
 }

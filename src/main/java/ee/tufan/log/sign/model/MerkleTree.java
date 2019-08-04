@@ -1,5 +1,7 @@
 package ee.tufan.log.sign.model;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -16,25 +18,17 @@ public class MerkleTree implements Serializable {
 	private static final String ALGORITHM = "SHA-512";
 	private static final int HASH_LEN = 32;
 
-	private List<String> logList;
-	private Map<String, String> signMap = new LinkedHashMap<>();
 	private String rootHash;
+	private Map<String, String> signMap = new LinkedHashMap<>();
+	private List<String> logList;
 
-	public MerkleTree(List<String> logList) {
+	public MerkleTree(List<String> logList) throws MerkleTreeException {
 		this.logList = logList;
 		List<String> firstLeafList = getFirstLeafList(logList);
 		rootHash = construct(firstLeafList).get(0);
 	}
 
-	public Map<String, String> getSignMap() {
-		return signMap;
-	}
-
-	public String getRootHash() {
-		return rootHash;
-	}
-
-	private List<String> construct(List<String> leafList) {
+	private List<String> construct(List<String> leafList) throws MerkleTreeException {
 		if (leafList.size() == 1) {
 			return leafList;
 		} else {
@@ -53,19 +47,28 @@ public class MerkleTree implements Serializable {
 		}
 	}
 
-	private List<String> getFirstLeafList(List<String> logList) {
+	private List<String> getFirstLeafList(List<String> logList) throws MerkleTreeException {
 		List<String> result = new ArrayList<>();
-		logList.forEach(log -> {
+		for (String log : logList) {
 			String sign = sign(log);
 			result.add(sign);
 			signMap.put(log, sign);
-		});
+		}
 		return result;
 	}
 
-	@Override
-	public String toString() {
-		return getRootHash();
+	private String sign(String raw) throws MerkleTreeException {
+		String hash;
+		try {
+			MessageDigest md = MessageDigest.getInstance(ALGORITHM);
+			byte[] messageDigest = md.digest(raw.getBytes());
+			BigInteger no = new BigInteger(1, messageDigest);
+			hash = no.toString(16);
+			StringUtils.leftPad(hash, HASH_LEN);
+		} catch (NoSuchAlgorithmException ex) {
+			throw new MerkleTreeException(ex.getMessage(), ex);
+		}
+		return hash;
 	}
 
 	public boolean isLogExist(String paramLog) {
@@ -77,21 +80,17 @@ public class MerkleTree implements Serializable {
 		return false;
 	}
 
+	public String getRootHash() {
+		return rootHash;
+	}
 
+	public Map<String, String> getSignMap() {
+		return signMap;
+	}
 
-	private String sign(String raw) {
-		try {
-			MessageDigest md = MessageDigest.getInstance(ALGORITHM);
-			byte[] messageDigest = md.digest(raw.getBytes());
-			BigInteger no = new BigInteger(1, messageDigest);
-			String hashtext = no.toString(16);
-			while (hashtext.length() < HASH_LEN) {
-				hashtext = "0".concat(hashtext);
-			}
-			return hashtext;
-		} catch (NoSuchAlgorithmException ex) {
-			return "";
-		}
+	@Override
+	public String toString() {
+		return getRootHash();
 	}
 
 }

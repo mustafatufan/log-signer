@@ -2,6 +2,7 @@ package ee.tufan.log.sign.service;
 
 import ee.tufan.log.sign.model.MerkleTree;
 import ee.tufan.log.storage.service.StorageService;
+import ee.tufan.log.storage.service.StorageServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,39 +16,27 @@ public class VerificationServiceImpl implements VerificationService {
 
 	private final StorageService storageService;
 
-	@Autowired
-	public VerificationServiceImpl(StorageService storageService) {
-		this.storageService = storageService;
-	}
-
 	@Override
 	public List<Map<String, String>> verify(String logLine) throws VerificationServiceException {
-		MerkleTree sign = null;
+		MerkleTree sign;
 		try {
 			sign = storageService.getSignByLogLine(logLine);
-			if (sign == null) {
-				return null;
-			}
-
-		} catch (SignServiceException ex) {
+		} catch (StorageServiceException ex) {
 			throw new VerificationServiceException(ex.getMessage(), ex);
 		}
+		return getVerificationList(sign, logLine);
+	}
 
+	private List<Map<String, String>> getVerificationList(MerkleTree sign, String logLine) {
 		List<Map<String, String>> verificationList = new ArrayList<>();
-
 		String key = logLine;
-
 		while (key != null) {
 			Map<String, String> verification = new HashMap<>();
-
 			verification.put("key", sign.getSignMap().get(key));
 			verification.put("value", key);
-
 			verificationList.add(verification);
-
 			key = findNextKey(verification.get("key"), sign.getSignMap());
 		}
-
 		return verificationList;
 	}
 
@@ -60,7 +49,7 @@ public class VerificationServiceImpl implements VerificationService {
 		return null;
 	}
 
-	public boolean isChild(String key, String half) {
+	private boolean isChild(String key, String half) {
 		if (key == null || half == null) {
 			return false;
 		}
@@ -70,6 +59,11 @@ public class VerificationServiceImpl implements VerificationService {
 			return true;
 		}
 		return false;
+	}
+
+	@Autowired
+	public VerificationServiceImpl(StorageService storageService) {
+		this.storageService = storageService;
 	}
 
 }

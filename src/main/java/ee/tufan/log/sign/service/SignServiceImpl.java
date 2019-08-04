@@ -1,6 +1,7 @@
 package ee.tufan.log.sign.service;
 
 import ee.tufan.log.sign.model.MerkleTree;
+import ee.tufan.log.sign.model.MerkleTreeException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,18 +20,18 @@ public class SignServiceImpl implements SignService {
 		try (InputStream inputStream = file.getInputStream()) {
 			List<String> lines = getLines(inputStream);
 			return new MerkleTree(lines);
-		} catch (IOException ex) {
+		} catch (IOException | MerkleTreeException ex) {
 			throw new SignServiceException(ex.getMessage(), ex);
 		}
 	}
 
 	private List<String> getLines(InputStream inputStream) throws IOException {
-		List<String> result = new ArrayList<>();
+		List<String> lines = new ArrayList<>();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 		while (reader.ready()) {
-			result.add(reader.readLine());
+			lines.add(reader.readLine());
 		}
-		return result;
+		return lines;
 	}
 
 }
