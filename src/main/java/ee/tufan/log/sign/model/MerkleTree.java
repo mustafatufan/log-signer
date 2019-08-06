@@ -64,7 +64,7 @@ public class MerkleTree implements Serializable {
 			byte[] messageDigest = md.digest(raw.getBytes());
 			BigInteger no = new BigInteger(1, messageDigest);
 			hash = no.toString(16);
-			StringUtils.leftPad(hash, HASH_LEN);
+			hash = StringUtils.leftPad(hash, HASH_LEN);
 		} catch (NoSuchAlgorithmException ex) {
 			throw new MerkleTreeException(ex.getMessage(), ex);
 		}
