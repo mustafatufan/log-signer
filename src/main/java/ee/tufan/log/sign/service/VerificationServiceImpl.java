@@ -53,7 +53,12 @@ public class VerificationServiceImpl implements VerificationService {
 	private boolean isChild(String key, String half) {
 		if (key == null || half == null) {
 			return false;
-		} else if (half.equals(StringUtils.right(key, half.length())) || half.equals(StringUtils.left(key, half.length()))) {
+		}
+
+		final int halfLen = half.length();
+		final String right = StringUtils.right(key, halfLen);
+		final String left = StringUtils.left(key, halfLen);
+		if (half.equals(right) || half.equals(left)) {
 			return true;
 		}
 		return false;
