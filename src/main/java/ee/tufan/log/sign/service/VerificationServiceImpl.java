@@ -3,6 +3,7 @@ package ee.tufan.log.sign.service;
 import ee.tufan.log.sign.model.MerkleTree;
 import ee.tufan.log.storage.service.StorageService;
 import ee.tufan.log.storage.service.StorageServiceException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -52,10 +53,7 @@ public class VerificationServiceImpl implements VerificationService {
 	private boolean isChild(String key, String half) {
 		if (key == null || half == null) {
 			return false;
-		}
-		final int mid = key.length() / 2;
-		String[] parts = {key.substring(0, mid), key.substring(mid)};
-		if (half.equals(parts[0]) || half.equals(parts[1])) {
+		} else if (half.equals(StringUtils.right(key, half.length())) || half.equals(StringUtils.left(key, half.length()))) {
 			return true;
 		}
 		return false;
